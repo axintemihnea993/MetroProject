@@ -1,0 +1,6 @@
+@MetroProject.API_HostAddress = http://localhost:5118
+
+GET {{MetroProject.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
