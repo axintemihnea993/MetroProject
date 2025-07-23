@@ -3,6 +3,7 @@ using MetroProject.Application.DTOs;
 using MetroProject.Application.Repositories;
 using System;
 using System.Collections.Generic;
+using MetroProject.Domain;
 
 namespace MetroProject.API.Controllers
 {
@@ -12,9 +13,9 @@ namespace MetroProject.API.Controllers
     {
         private readonly CustomersRepository _repository;
 
-        public CustomersController()
+        public CustomersController(AppDbContext context)
         {
-            _repository = new CustomersRepository();
+            _repository = new CustomersRepository(context);
         }
 
         [HttpGet]

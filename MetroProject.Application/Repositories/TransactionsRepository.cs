@@ -10,20 +10,25 @@ namespace MetroProject.Application.Repositories
 {
     public class TransactionsRepository : IRepository<TransactionDTO>
     {
-        private readonly AppDbContext _context;
+        private readonly AppDbContext dbContext;
         public TransactionsRepository(AppDbContext context)
         {
-            this._context = context;
+            this.dbContext = context;
         }
 
         public TransactionDTO Create(TransactionDTO transaction)
         {
+            var customer = dbContext.Customers.Find(transaction.Customer.Id);
+            if (customer == null)
+            {
+                throw new Exception("Customer not found");
+            }
             var newTransaction = new Transactions
             {
                 Timestamp = transaction.Timestamp,
-                // Set Customer, ArticlesTransactions, Payments as needed
+                Customer = customer,
             };
-            _context.Transactions.Add(newTransaction);
+            dbContext.Transactions.Add(newTransaction);
 
             return new TransactionDTO
             {
@@ -35,55 +40,69 @@ namespace MetroProject.Application.Repositories
 
         public List<TransactionDTO> Get()
         {
-            using (var context = new AppDbContext())
-            {
-                var transactions = context.Transactions
-                    .Select(t => new TransactionDTO
-                    {
-                        Id = t.Id,
-                        Timestamp = t.Timestamp,
-                        // Map related DTOs if needed
-                    })
-                    .ToList();
+            var transactions = dbContext.Transactions
+                .Select(t => new TransactionDTO
+                {
+                    Id = t.Id,
+                    Timestamp = t.Timestamp,
+                    // Map related DTOs if needed
+                })
+                .ToList();
 
-                return transactions;
-            }
+            return transactions;
         }
 
         public TransactionDTO Update(TransactionDTO transaction)
         {
-            using (var context = new AppDbContext())
+            var existingTransaction = dbContext.Transactions.Find(transaction.Id);
+            if (existingTransaction == null)
             {
-                var existingTransaction = context.Transactions.Find(transaction.Id);
-                if (existingTransaction == null)
-                {
-                    throw new Exception("Transaction not found");
-                }
-                existingTransaction.Timestamp = transaction.Timestamp;
-                // Update related entities as needed
-                context.SaveChanges();
-                return new TransactionDTO
-                {
-                    Id = existingTransaction.Id,
-                    Timestamp = existingTransaction.Timestamp,
-                    // Map related DTOs if needed
-                };
+                throw new Exception("Transaction not found");
             }
+            existingTransaction.Timestamp = transaction.Timestamp;
+            // Update related entities as needed
+            dbContext.SaveChanges();
+            return new TransactionDTO
+            {
+                Id = existingTransaction.Id,
+                Timestamp = existingTransaction.Timestamp,
+                // Map related DTOs if needed
+            };
+
         }
 
         public bool Delete(int id)
         {
-            using (var context = new AppDbContext())
+            var transaction = dbContext.Transactions.Find(id);
+            if (transaction == null)
             {
-                var transaction = context.Transactions.Find(id);
-                if (transaction == null)
-                {
-                    return false; // Transaction not found
-                }
-                context.Transactions.Remove(transaction);
-                context.SaveChanges();
-                return true; // Transaction deleted successfully
+                return false; // Transaction not found
             }
+            dbContext.Transactions.Remove(transaction);
+            dbContext.SaveChanges();
+            return true; // Transaction deleted successfully
+
+        }
+
+        public CustomerDTO GetCustomerById(int customerId)
+        {
+            var customer = dbContext.Customers.Find(customerId);
+            if (customer == null)
+            {
+                throw new Exception("Customer not found");
+            }
+            return new CustomerDTO
+            {
+                Id = customer.Id,
+                Name = customer.Name,
+                Email = customer.Email,
+                Phone = customer.Phone,
+                CreatedOn = customer.CreatedOn,
+                UpdatedAt = customer.UpdatedAt,
+                LastPurchaseDate = customer.LastPurchaseDate,
+                Address = customer.Address,
+                City = customer.City
+            };
         }
     }
 }

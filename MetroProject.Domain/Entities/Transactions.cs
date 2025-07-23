@@ -15,7 +15,7 @@ namespace MetroProject.Domain.Entities
         public DateTime Timestamp { get; set; }
         public decimal Amount { get; set; }
         public Customers Customer { get; set; }
-        public ICollection<ArticlesTransactions> ArticlesTransactions { get; set; }
-        public ICollection<Payments> Payments{ get; set; }
+        public ICollection<ArticlesTransactions>? ArticlesTransactions { get; set; }
+        public ICollection<Payments>? Payments{ get; set; }
     }
 }

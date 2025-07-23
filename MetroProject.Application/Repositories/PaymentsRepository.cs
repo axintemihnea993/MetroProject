@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace MetroProject.Application.Repositories
 {
-    public class PaymentsRepository: IRepository<PaymentDTO>
+    public class PaymentsRepository : IRepository<PaymentDTO>
     {
         private AppDbContext dbContext;
         public PaymentsRepository(AppDbContext context)
@@ -23,7 +23,7 @@ namespace MetroProject.Application.Repositories
                 var newPayment = new Payments
                 {
                     CustomerId = payment.CustomerId,
-                    PaymentDate = payment.PaymentDate,
+                    PaymentDate = payment.PaymentDate.ToUniversalTime(),
                     PaymentMethod = payment.PaymentMethod,
                     TransactionId = payment.TransactionId,
                     CreatedOn = DateTime.UtcNow,
@@ -55,6 +55,8 @@ namespace MetroProject.Application.Repositories
                         CustomerId = p.CustomerId,
                         PaymentDate = p.PaymentDate,
                         PaymentMethod = p.PaymentMethod,
+                        ProcessedStatus = p.ProcessedStatus,
+                        ProcessedTime = p.ProcessedTime,
                         TransactionId = p.TransactionId,
                         CreatedOn = p.CreatedOn,
                         UpdatedAt = p.UpdatedAt
@@ -76,9 +78,11 @@ namespace MetroProject.Application.Repositories
                 }
                 existingPayment.CustomerId = payment.CustomerId;
                 existingPayment.Amount = payment.Amount;
-                existingPayment.PaymentDate = payment.PaymentDate;
+                existingPayment.PaymentDate = payment.PaymentDate.ToUniversalTime();
                 existingPayment.PaymentMethod = payment.PaymentMethod;
                 existingPayment.TransactionId = payment.TransactionId;
+                existingPayment.ProcessedStatus = payment.ProcessedStatus;
+                existingPayment.ProcessedTime = payment.ProcessedTime.ToUniversalTime();
                 existingPayment.UpdatedAt = DateTime.UtcNow;
                 context.SaveChanges();
                 return new PaymentDTO
@@ -109,7 +113,7 @@ namespace MetroProject.Application.Repositories
             }
         }
 
-        public List<Payments> GetById(List<int> list)
+        public List<Payments> GetByIds(ICollection<int> list)
         {
             using (var context = new AppDbContext())
             {

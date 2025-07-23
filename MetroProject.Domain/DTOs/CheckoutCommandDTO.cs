@@ -11,7 +11,8 @@ namespace MetroProject.Domain.DTOs
     {
         public int Id { get; set; }
         public DateTime Timestamp { get; set; }
-        public KeyValuePair<int, int>[] ArticlesQuantity { get; set; }
-        public ICollection<PaymentDTO> Payments { get; set; }
+        public int CustomerId { get; set; }
+        public ArticleQuantiy[] ArticlesQuantity { get; set; }
+        public ICollection<int> PaymentIds { get; set; }
     }
 }

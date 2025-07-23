@@ -25,7 +25,6 @@ namespace MetroProject.Domain
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            // Replace with your actual PostgreSQL connection string
             optionsBuilder.UseNpgsql("Host=db;Database=metrodb;Username=postgres;Password=yourpassword");
         }
 

@@ -10,6 +10,8 @@ namespace MetroProject.Application.DTOs
         public DateTime PaymentDate { get; set; }
         public string PaymentMethod { get; set; }
         public string TransactionId { get; set; }
+        public DateTime ProcessedTime { get; set; }
+        public bool ProcessedStatus { get; set; }     
         public DateTime CreatedOn { get; set; }
         public DateTime UpdatedAt { get; set; }
     }

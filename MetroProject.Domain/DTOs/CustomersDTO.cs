@@ -19,6 +19,5 @@ namespace MetroProject.Application.DTOs
         public string City { get; set; }
 
         // Optionally include related transactions as DTOs
-        public ICollection<TransactionDTO> Transactions { get; set; }
     }
 }

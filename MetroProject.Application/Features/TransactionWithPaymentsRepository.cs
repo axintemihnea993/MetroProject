@@ -30,11 +30,13 @@ namespace MetroProject.Application.Features
             {
                 var transactionDTO = new TransactionDTO()
                 {
-                    Timestamp = DateTime.Now,
+                    Timestamp = DateTime.UtcNow,
+                    Customer = this.TransactionReporsitory.GetCustomerById(transaction.CustomerId),
                 };
+
                 var savedTransaction = this.TransactionReporsitory.Create(transactionDTO);
                 UpdateArticleQuantiy(transaction.ArticlesQuantity);
-                ProcessPayments(transaction.Payments);
+                ProcessPayments(transaction.PaymentIds);
 
                 dbContext.SaveChanges();
 
@@ -47,21 +49,36 @@ namespace MetroProject.Application.Features
             }
         }
 
-        private void ProcessPayments(ICollection<PaymentDTO> payments)
+
+        private void ProcessPayments(ICollection<int> payments)
         {
-            var paymentEntities = this.PaymentsRepository.GetById(payments.Select(p => p.Id).ToList());
+            var paymentEntities = this.PaymentsRepository.GetByIds(payments);
             if (paymentEntities == null || !paymentEntities.Any())
             {
                 throw new Exception("No payments found for processing.");
             }
 
-            GetResponseForPaymentFromBank();
+            var status = GetResponseForPaymentFromBank();//trebuie await si async
             
             foreach (var payment in paymentEntities)
             {
-                payment.ProcessedTime = DateTime.UtcNow;
-                payment.ProcessedStatus = true;
+                payment.ProcessedTime = DateTime.Now.ToUniversalTime();
+                payment.ProcessedStatus = status;
+                this.PaymentsRepository.Update(new PaymentDTO()
+                {
+                    Id = payment.Id,
+                    Amount = payment.Amount,
+                    CustomerId = payment.CustomerId,
+                    PaymentDate = payment.PaymentDate.ToUniversalTime(),
+                    PaymentMethod = payment.PaymentMethod,
+                    ProcessedStatus = payment.ProcessedStatus,
+                    ProcessedTime = payment.ProcessedTime,
+                    TransactionId = payment.TransactionId,
+                    CreatedOn = payment.CreatedOn,
+                    UpdatedAt = DateTime.UtcNow
+                });
             }
+
         }
 
         private bool GetResponseForPaymentFromBank()
@@ -69,12 +86,12 @@ namespace MetroProject.Application.Features
             return true;
         }
 
-        private void UpdateArticleQuantiy(KeyValuePair<int, int>[] ArticlesQuantity)
+        private void UpdateArticleQuantiy(ArticleQuantiy[] ArticlesQuantity)
         {
             foreach (var articlesQuantityValuePair in ArticlesQuantity)
             {
-                var article = this.ArticlesRepository.GetById(articlesQuantityValuePair.Key);
-                article.Stock -= articlesQuantityValuePair.Value;
+                var article = this.ArticlesRepository.GetById(articlesQuantityValuePair.ArticleId);
+                article.Stock -= articlesQuantityValuePair.Quantity;
 
                 this.ArticlesRepository.Update(new ArticleDTO()
                 {
