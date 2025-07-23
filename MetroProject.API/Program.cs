@@ -1,4 +1,7 @@
+using MetroProject.Application.Repositories;
 using MetroProject.Domain;
+using MetroProject.Domain.DTOs;
+using MetroProject.Domain.Interface;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +15,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IRepository<CheckoutCommandDTO>, TransactionWithPaymentsRepository>();
 
 var app = builder.Build();
 

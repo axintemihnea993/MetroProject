@@ -1,16 +1,16 @@
 ﻿using MetroProject.Application.DTOs;
-using MetroProject.Application.Repositories;
 using MetroProject.Domain;
 using MetroProject.Domain.DTOs;
+using MetroProject.Domain.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MetroProject.Application.Features
+namespace MetroProject.Application.Repositories
 {
-    public class TransactionWithPaymentsRepository
+    public class TransactionWithPaymentsRepository : IRepository<CheckoutCommandDTO>
     {
         public TransactionsRepository TransactionReporsitory { get; set; }
         public PaymentsRepository PaymentsRepository { get; set; }
@@ -18,10 +18,10 @@ namespace MetroProject.Application.Features
         private AppDbContext dbContext;
         public TransactionWithPaymentsRepository(AppDbContext context)
         {
-            this.dbContext = context;
-            this.TransactionReporsitory = new TransactionsRepository(context);
-            this.PaymentsRepository = new PaymentsRepository(context);
-            this.ArticlesRepository = new ArticlesRepository(context);
+            dbContext = context;
+            TransactionReporsitory = new TransactionsRepository(context);
+            PaymentsRepository = new PaymentsRepository(context);
+            ArticlesRepository = new ArticlesRepository(context);
         }
 
         public CheckoutCommandDTO Create(CheckoutCommandDTO transaction)
@@ -30,11 +30,11 @@ namespace MetroProject.Application.Features
             {
                 var transactionDTO = new TransactionDTO()
                 {
-                    Timestamp = DateTime.UtcNow,
-                    Customer = this.TransactionReporsitory.GetCustomerById(transaction.CustomerId),
+                    CreationDate = DateTime.UtcNow,
+                    Customer = TransactionReporsitory.GetCustomerById(transaction.CustomerId),
                 };
 
-                var savedTransaction = this.TransactionReporsitory.Create(transactionDTO);
+                var savedTransaction = TransactionReporsitory.Create(transactionDTO);
                 UpdateArticleQuantiy(transaction.ArticlesQuantity);
                 ProcessPayments(transaction.PaymentIds);
 
@@ -49,10 +49,9 @@ namespace MetroProject.Application.Features
             }
         }
 
-
         private void ProcessPayments(ICollection<int> payments)
         {
-            var paymentEntities = this.PaymentsRepository.GetByIds(payments);
+            var paymentEntities = PaymentsRepository.GetByIds(payments);
             if (paymentEntities == null || !paymentEntities.Any())
             {
                 throw new Exception("No payments found for processing.");
@@ -64,7 +63,7 @@ namespace MetroProject.Application.Features
             {
                 payment.ProcessedTime = DateTime.Now.ToUniversalTime();
                 payment.ProcessedStatus = status;
-                this.PaymentsRepository.Update(new PaymentDTO()
+                PaymentsRepository.Update(new PaymentDTO()
                 {
                     Id = payment.Id,
                     Amount = payment.Amount,
@@ -90,10 +89,10 @@ namespace MetroProject.Application.Features
         {
             foreach (var articlesQuantityValuePair in ArticlesQuantity)
             {
-                var article = this.ArticlesRepository.GetById(articlesQuantityValuePair.ArticleId);
+                var article = ArticlesRepository.GetById(articlesQuantityValuePair.ArticleId);
                 article.Stock -= articlesQuantityValuePair.Quantity;
 
-                this.ArticlesRepository.Update(new ArticleDTO()
+                ArticlesRepository.Update(new ArticleDTO()
                 {
                     Id = article.Id,
                     Name = article.Name,
@@ -104,6 +103,21 @@ namespace MetroProject.Application.Features
                     Stock = article.Stock
                 });
             }
+        }
+
+        public List<CheckoutCommandDTO> Get()
+        {
+            throw new NotImplementedException();
+        }
+
+        public CheckoutCommandDTO Update(CheckoutCommandDTO entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Delete(int id)
+        {
+            throw new NotImplementedException();
         }
     }
 }

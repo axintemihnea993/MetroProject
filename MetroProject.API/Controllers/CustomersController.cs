@@ -12,26 +12,57 @@ namespace MetroProject.API.Controllers
     public class CustomersController : ControllerBase
     {
         private readonly CustomersRepository _repository;
+        private readonly ILogger<PaymentsController> _logger;
 
-        public CustomersController(AppDbContext context)
+        public CustomersController(AppDbContext context, ILogger<PaymentsController> logger)
         {
             _repository = new CustomersRepository(context);
+            _logger = logger;
         }
 
         [HttpGet]
         public ActionResult<IEnumerable<CustomerDTO>> Get()
         {
-            var customers = _repository.Get();
-            return Ok(customers);
+            try
+            {
+                var customers = _repository.Get();
+
+                return Ok(customers);
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = "An error occurred while retrieving customers.";
+                _logger.LogError(ex, errorMessage);
+                return StatusCode(500, new
+                {
+                    Message = errorMessage,
+                    Details = ex.Message
+                });
+            }
         }
 
         [HttpGet("{id}")]
         public ActionResult<CustomerDTO> GetById(int id)
         {
-            var customer = _repository.Get().Find(c => c.Id == id);
-            if (customer == null)
-                return NotFound();
-            return Ok(customer);
+            try
+            {
+                var customer = _repository.Get().Find(c => c.Id == id);
+
+                if (customer == null)
+                    return NotFound();
+
+                return Ok(customer);
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = $"An error occurred while retrieving customer with ID {id}.";
+                _logger.LogError(ex, errorMessage);
+                return StatusCode(500, new
+                {
+                    Message = errorMessage,
+                    Details = ex.Message
+                });
+            }
         }
 
         [HttpPost]
@@ -40,20 +71,24 @@ namespace MetroProject.API.Controllers
             try
             {
                 var created = _repository.Create(customer);
+
                 return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                var errorMessage = $"An error occurred while creating customer.";
+                _logger.LogError(ex, errorMessage);
+                return StatusCode(500, new
+                {
+                    Message = errorMessage,
+                    Details = ex.Message
+                });
             }
         }
 
         [HttpPut("{id}")]
-        public ActionResult<CustomerDTO> Update(int id, [FromBody] CustomerDTO customer)
+        public ActionResult<CustomerDTO> Update([FromBody] CustomerDTO customer)
         {
-            if (id != customer.Id)
-                return BadRequest("ID mismatch.");
-
             try
             {
                 var updated = _repository.Update(customer);
@@ -61,17 +96,38 @@ namespace MetroProject.API.Controllers
             }
             catch (Exception ex)
             {
-                return NotFound(ex.Message);
+                var errorMessage = $"An error occurred while updating customer.";
+                _logger.LogError(ex, errorMessage);
+                return StatusCode(500, new
+                {
+                    Message = errorMessage,
+                    Details = ex.Message
+                });
             }
         }
 
         [HttpDelete("{id}")]
         public ActionResult Delete(int id)
         {
-            var result = _repository.Delete(id);
-            if (!result)
-                return NotFound();
-            return NoContent();
+            try
+            {
+                var result = _repository.Delete(id);
+
+                if (!result)
+                    return NotFound();
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = $"An error occurred while deleting customer with ID {id}.";
+                _logger.LogError(ex, errorMessage);
+                return StatusCode(500, new
+                {
+                    Message = errorMessage,
+                    Details = ex.Message
+                });
+            }
         }
     }
 }

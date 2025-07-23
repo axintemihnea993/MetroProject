@@ -1,7 +1,8 @@
 ﻿using MetroProject.Application.DTOs;
-using MetroProject.Application.Features;
+using MetroProject.Application.Repositories;
 using MetroProject.Domain;
 using MetroProject.Domain.DTOs;
+using MetroProject.Domain.Interface;
 using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -12,20 +13,41 @@ namespace MetroProject.API.Controllers
     [ApiController]
     public class TransactionsController : ControllerBase
     {
-        private readonly AppDbContext dbContext;
+        // Change the type of transactionsRepository to IRepository<CheckoutCommandDTO>
+        private readonly IRepository<CheckoutCommandDTO> transactionsRepository;
+        private readonly ILogger<TransactionsController> logger;
 
-        public TransactionsController(AppDbContext context)
+        // Update the constructor parameter and assignment accordingly
+        public TransactionsController(ILogger<TransactionsController> logger, IRepository<CheckoutCommandDTO> repository)
         {
-            dbContext = context;
+            this.transactionsRepository = repository;
+            this.logger = logger;
         }
+
         // POST api/<TransactionsController>
         [HttpPost]
         public ActionResult<CheckoutCommandDTO> Post([FromBody] CheckoutCommandDTO transaction)
         {
-            var transactionRepository = new TransactionWithPaymentsRepository(dbContext);
-            var createdTransaction = transactionRepository.Create(transaction);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-            return Ok(createdTransaction);
+            try
+            {
+                var createdTransaction = this.transactionsRepository.Create(transaction);
+
+                return Ok(createdTransaction);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred while creating transaction.");
+                return StatusCode(500, new
+                {
+                    Message = "An internal server error occurred while creating transaction.",
+                    Details = ex.Message
+                });
+            }
         }
     }
 }

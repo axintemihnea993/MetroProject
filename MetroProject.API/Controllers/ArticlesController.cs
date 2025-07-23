@@ -12,26 +12,57 @@ namespace MetroProject.API.Controllers
     public class ArticlesController : ControllerBase
     {
         private readonly ArticlesRepository _repository;
+        private readonly ILogger<ArticlesController> _logger;
 
-        public ArticlesController(AppDbContext context)
+        public ArticlesController(AppDbContext context, ILogger<ArticlesController> logger)
         {
             _repository = new ArticlesRepository(context);
+            _logger = logger;
         }
 
         [HttpGet]
         public ActionResult<IEnumerable<ArticleDTO>> Get()
         {
-            var articles = _repository.Get();
-            return Ok(articles);
+            try
+            {
+                var articles = _repository.Get();
+
+                return Ok(articles);
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = "An error occurred while retrieving articles.";
+                _logger.LogError(ex, errorMessage);
+                return StatusCode(500, new
+                {
+                    Message = errorMessage,
+                    Details = ex.Message
+                });
+            }
         }
 
         [HttpGet("{id}")]
         public ActionResult<ArticleDTO> GetById(int id)
         {
-            var article = _repository.Get().Find(a => a.Id == id);
-            if (article == null)
-                return NotFound();
-            return Ok(article);
+            try
+            {
+                var article = _repository.Get().Find(a => a.Id == id);
+
+                if (article == null)
+                    return NotFound();
+
+                return Ok(article);
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = $"An error occurred while retrieving article with ID {id}.";
+                _logger.LogError(ex, errorMessage);
+                return StatusCode(500, new
+                {
+                    Message = errorMessage,
+                    Details = ex.Message
+                });
+            }
         }
 
         [HttpPost]
@@ -44,16 +75,19 @@ namespace MetroProject.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                var errorMessage = "An error occurred while creating the article.";
+                _logger.LogError(ex, errorMessage);
+                return StatusCode(500, new
+                {
+                    Message = errorMessage,
+                    Details = ex.Message
+                });
             }
         }
 
         [HttpPut("{id}")]
         public ActionResult<ArticleDTO> Update(int id, [FromBody] ArticleDTO article)
         {
-            if (id != article.Id)
-                return BadRequest("ID mismatch.");
-
             try
             {
                 var updated = _repository.Update(article);
@@ -61,17 +95,38 @@ namespace MetroProject.API.Controllers
             }
             catch (Exception ex)
             {
-                return NotFound(ex.Message);
+                var errorMessage = "An error occurred while updating the article.";
+                _logger.LogError(ex, errorMessage);
+                return StatusCode(500, new
+                {
+                    Message = errorMessage,
+                    Details = ex.Message
+                });
             }
         }
 
         [HttpDelete("{id}")]
         public ActionResult Delete(int id)
         {
-            var result = _repository.Delete(id);
-            if (!result)
-                return NotFound();
-            return NoContent();
+            try
+            {
+                var result = _repository.Delete(id);
+
+                if (!result)
+                    return NotFound();
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = $"An error occurred while deleting the article with ID {id}.";
+                _logger.LogError(ex, errorMessage);
+                return StatusCode(500, new
+                {
+                    Message = errorMessage,
+                    Details = ex.Message
+                });
+            }
         }
     }
 }

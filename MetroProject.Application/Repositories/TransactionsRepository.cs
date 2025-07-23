@@ -25,7 +25,7 @@ namespace MetroProject.Application.Repositories
             }
             var newTransaction = new Transactions
             {
-                Timestamp = transaction.Timestamp,
+                Timestamp = transaction.CreationDate,
                 Customer = customer,
             };
             dbContext.Transactions.Add(newTransaction);
@@ -33,7 +33,7 @@ namespace MetroProject.Application.Repositories
             return new TransactionDTO
             {
                 Id = newTransaction.Id,
-                Timestamp = newTransaction.Timestamp,
+                CreationDate = newTransaction.Timestamp,
                 // Map related DTOs if needed
             };
         }
@@ -44,7 +44,7 @@ namespace MetroProject.Application.Repositories
                 .Select(t => new TransactionDTO
                 {
                     Id = t.Id,
-                    Timestamp = t.Timestamp,
+                    CreationDate = t.Timestamp,
                     // Map related DTOs if needed
                 })
                 .ToList();
@@ -59,13 +59,13 @@ namespace MetroProject.Application.Repositories
             {
                 throw new Exception("Transaction not found");
             }
-            existingTransaction.Timestamp = transaction.Timestamp;
+            existingTransaction.Timestamp = transaction.CreationDate;
             // Update related entities as needed
             dbContext.SaveChanges();
             return new TransactionDTO
             {
                 Id = existingTransaction.Id,
-                Timestamp = existingTransaction.Timestamp,
+                CreationDate = existingTransaction.Timestamp,
                 // Map related DTOs if needed
             };
 
