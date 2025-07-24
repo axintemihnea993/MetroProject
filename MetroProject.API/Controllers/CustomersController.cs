@@ -4,6 +4,7 @@ using MetroProject.Application.Repositories;
 using System;
 using System.Collections.Generic;
 using MetroProject.Domain;
+using MetroProject.Domain.Interface;
 
 namespace MetroProject.API.Controllers
 {
@@ -11,12 +12,12 @@ namespace MetroProject.API.Controllers
     [Route("api/[controller]")]
     public class CustomersController : ControllerBase
     {
-        private readonly CustomersRepository _repository;
-        private readonly ILogger<PaymentsController> _logger;
+        private readonly IRepository<CustomerDTO> _repository;
+        private readonly ILogger<CustomersController> _logger;
 
-        public CustomersController(AppDbContext context, ILogger<PaymentsController> logger)
+        public CustomersController(ILogger<CustomersController> logger, IRepository<CustomerDTO> repository)
         {
-            _repository = new CustomersRepository(context);
+            _repository = repository;
             _logger = logger;
         }
 
@@ -68,6 +69,11 @@ namespace MetroProject.API.Controllers
         [HttpPost]
         public ActionResult<CustomerDTO> Create([FromBody] CustomerDTO customer)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
                 var created = _repository.Create(customer);
@@ -89,6 +95,11 @@ namespace MetroProject.API.Controllers
         [HttpPut("{id}")]
         public ActionResult<CustomerDTO> Update([FromBody] CustomerDTO customer)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
                 var updated = _repository.Update(customer);

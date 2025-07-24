@@ -4,6 +4,7 @@ using MetroProject.Application.Repositories;
 using System;
 using System.Collections.Generic;
 using MetroProject.Domain;
+using MetroProject.Domain.Interface;
 
 namespace MetroProject.API.Controllers
 {
@@ -11,12 +12,12 @@ namespace MetroProject.API.Controllers
     [Route("api/[controller]")]
     public class ArticlesController : ControllerBase
     {
-        private readonly ArticlesRepository _repository;
+        private readonly IRepository<ArticleDTO> _repository;
         private readonly ILogger<ArticlesController> _logger;
 
-        public ArticlesController(AppDbContext context, ILogger<ArticlesController> logger)
+        public ArticlesController(ILogger<ArticlesController> logger, IRepository<ArticleDTO> repository)
         {
-            _repository = new ArticlesRepository(context);
+            _repository = repository;
             _logger = logger;
         }
 
@@ -68,6 +69,11 @@ namespace MetroProject.API.Controllers
         [HttpPost]
         public ActionResult<ArticleDTO> Create([FromBody] ArticleDTO article)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
                 var created = _repository.Create(article);
@@ -88,6 +94,11 @@ namespace MetroProject.API.Controllers
         [HttpPut("{id}")]
         public ActionResult<ArticleDTO> Update(int id, [FromBody] ArticleDTO article)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
                 var updated = _repository.Update(article);

@@ -4,6 +4,7 @@ using MetroProject.Application.Repositories;
 using System;
 using System.Collections.Generic;
 using MetroProject.Domain;
+using MetroProject.Domain.Interface;
 
 namespace MetroProject.API.Controllers
 {
@@ -11,12 +12,12 @@ namespace MetroProject.API.Controllers
     [Route("api/[controller]")]
     public class PaymentsController : ControllerBase
     {
-        private readonly PaymentsRepository _repository;
+        private readonly IRepository<PaymentDTO> _repository;
         private readonly ILogger<PaymentsController> logger;
 
-        public PaymentsController(AppDbContext dbContext, ILogger<PaymentsController> logger)
+        public PaymentsController(ILogger<PaymentsController> logger, IRepository<PaymentDTO> repository)
         {
-            _repository = new PaymentsRepository(dbContext);
+            _repository = repository;
             this.logger = logger;
         }
 
@@ -66,7 +67,6 @@ namespace MetroProject.API.Controllers
         [HttpPost]
         public ActionResult<PaymentDTO> Create([FromBody] PaymentDTO payment)
         {
-
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);

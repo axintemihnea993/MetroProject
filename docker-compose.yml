@@ -21,16 +21,5 @@ services:
     depends_on:
       - db
 
-  tests:
-    build:
-      context: .
-      dockerfile: MetroProject.API.Tests/Dockerfile
-    depends_on:
-      - db
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-    command: >
-      sh -c "dotnet test --logger:trx"
-
 volumes:
   db_data:

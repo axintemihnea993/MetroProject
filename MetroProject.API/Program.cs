@@ -1,3 +1,4 @@
+using MetroProject.Application.DTOs;
 using MetroProject.Application.Repositories;
 using MetroProject.Domain;
 using MetroProject.Domain.DTOs;
@@ -17,6 +18,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IRepository<CheckoutCommandDTO>, TransactionWithPaymentsRepository>();
+builder.Services.AddScoped<IRepository<PaymentDTO>, PaymentsRepository>();
+builder.Services.AddScoped<IRepository<CustomerDTO>, CustomersRepository>();
+builder.Services.AddScoped<IRepository<ArticleDTO>, ArticlesRepository>();
 
 var app = builder.Build();
 
